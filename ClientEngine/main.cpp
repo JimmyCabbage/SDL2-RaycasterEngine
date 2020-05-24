@@ -1,37 +1,165 @@
 #include <cstdlib>
 #include <iostream>
+#include <cmath>
 #include <SDL2/SDL.h>
 
-#include "variables.h"
-#include "maths.h"
-#include "setup.h"
+const int SCR_HEIGHT = 720;
+const int SCR_WIDTH = 1280;
 
-/*
-/ Unpublished work Copywrite © 2020 Ryan Rhee
-/ All rights reserved
-/
-/
-*/
+const int mapWidth = 24;
+const int mapHeight = 24;
+
+struct ColorRGB
+{
+    int r, g, b;
+};
+
+int worldMap[mapWidth][mapHeight] =
+{
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
+  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
 
 
 int main(int argc, char** argv)
 {
-    setupSDL2();
-    
+    bool jumping = false;
+    bool falling = false;
+
+    int wsad[6] = { 0, 0, 0, 0, 0, 0 };
+
+    double moveSpeed, rotSpeed;
+
+    double frameTime;
+
+    double posX = 22, posY = 12, posZ = 0; // x, y, and z position in start
+    double dirX = -1, dirY = 0; // direction when start
+    double planeX = 0, planeY = 0.66; // 2d version of camera plane
+
+    double time = 0; //time of current frame
+    double oldTime = 0; // time of the previous frame
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    {
+        std::cerr << "Could not initiate SDL: " << SDL_GetError() << '\n';
+        exit(1);
+    }
+
+    SDL_Window* gWindow = SDL_CreateWindow("Raycaster in SDL2 Port", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCR_WIDTH, SCR_HEIGHT, SDL_WINDOW_SHOWN);
+
+    if (!gWindow)
+    {
+        std::cerr << "Unable to create SDL window: " << SDL_GetError() << '\n';
+        exit(1);
+    }
+
+    SDL_Renderer* gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_SOFTWARE);
+
+    if (!gRenderer)
+    {
+        std::cerr << "Unable to create SDL renderer: " << SDL_GetError() << '\n';
+        exit(1);
+    }
     SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
     SDL_RenderClear(gRenderer);
-
-    std::cout << "Unpublished work Copyright 2020 Ryan Rhee\nAll Rights Reserved\n";
 
     while (1)
     {
         for (int x = 0; x < SCR_WIDTH; x++)
         {
-            maths(x);
+            double cameraX = 2 * double(x) / double(SCR_WIDTH) - 1; // x coordinate in cameraspace
+            double rayDirX = dirX + planeX * cameraX;
+            double rayDirY = dirY + planeY * cameraX;
+
+            int mapX = int(posX);
+            int mapY = int(posY);
+
+            double sideDistX, sideDistY, perpWallDist, deltaDistX, deltaDistY;
+
+            deltaDistX = std::abs(1 / rayDirX);
+            deltaDistY = std::abs(1 / rayDirY);
+
+            int stepX, stepY, hit = 0, side;
+
+            //calculate step and initial sideDist
+            if (rayDirX < 0)
+            {
+                stepX = -1;
+                sideDistX = (posX - mapX) * deltaDistX;
+            }
+            else
+            {
+                stepX = 1;
+                sideDistX = (mapX + 1.0 - posX) * deltaDistX;
+            }
+            if (rayDirY < 0)
+            {
+                stepY = -1;
+                sideDistY = (posY - mapY) * deltaDistY;
+            }
+            else
+            {
+                stepY = 1;
+                sideDistY = (mapY + 1.0 - posY) * deltaDistY;
+            }
+
+            //perform DDA
+            while (hit == 0)
+            {
+                //jump to next map square, OR in x-direction, OR in y-direction
+                if (sideDistX < sideDistY)
+                {
+                    sideDistX += deltaDistX;
+                    mapX += stepX;
+                    side = 0;
+                }
+                else
+                {
+                    sideDistY += deltaDistY;
+                    mapY += stepY;
+                    side = 1;
+                }
+                //Check if ray has hit a wall
+                if (worldMap[mapX][mapY] > 0) hit = 1;
+            }
+
+            //Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
+            if (side == 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
+            else           perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
+
+            //Calculate height of line to draw on screen
+            int lineHeight = (int)(SCR_WIDTH / perpWallDist);
+
+            //calculate lowest and highest pixel to fill in current stripe
+            int drawStart = (-lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
+            if (drawStart < 0)drawStart = 0;
+            int drawEnd = (lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
+            if (drawEnd >= SCR_HEIGHT)drawEnd = SCR_HEIGHT - 1;
 
             //choose wall color
-            ColorRGBA color;
-            color.a = 255;
+            ColorRGB color;
             switch (worldMap[mapX][mapY])
             {
             case 1://red
@@ -51,11 +179,6 @@ int main(int argc, char** argv)
                 break;
             case 4://white
                 color.r = 255;
-                color.g = 255;
-                color.b = 255;
-                break;
-            case 9://cyan
-                color.r = 0;
                 color.g = 255;
                 color.b = 255;
                 break;
@@ -83,7 +206,7 @@ int main(int argc, char** argv)
             SDL_RenderDrawLine(gRenderer, x, drawEnd, x, SCR_HEIGHT);
 
             //draw the pixels of the stripe as a vertical line for the walls
-            SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, color.a);
+            SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, 255);
             SDL_RenderDrawLine(gRenderer, x, drawStart, x, drawEnd);
         }
 
@@ -95,9 +218,11 @@ int main(int argc, char** argv)
         oldTime = time;
         time = SDL_GetTicks();
         frameTime = (time - oldTime) / 1000.0; //frameTime is the time this frame has taken, in seconds
-        //std::cout<< (1.0 / frameTime) << '\n'; //prints FPS
+        std::cout << (1.0 / frameTime) << '\n'; //FPS counter
 
         SDL_Event event;
+        double oldDirX;
+        double oldPlaneX;
 
         while (SDL_PollEvent(&event))
         {
@@ -117,7 +242,7 @@ int main(int argc, char** argv)
                 case 's':
                     wsad[1] = event.type == SDL_KEYDOWN;
                     break;
-                case 'a': 
+                case 'a':
                     wsad[3] = event.type == SDL_KEYDOWN;
                     break;
                 case 'd':
@@ -140,13 +265,13 @@ int main(int argc, char** argv)
             }
         }
 
-        
+
 
         //speed modifiers
         rotSpeed = frameTime * 1.0; //the constant value is in radians/second
 
         if (jumping)
-            moveSpeed = frameTime * 5.0 + (rotSpeed * 2); // boost the speed when jumping
+            moveSpeed = frameTime * 5.0; // boost the speed when jumping
         else if (wsad[4])//sprinting
             moveSpeed = frameTime * 6.0;
         else
@@ -157,7 +282,7 @@ int main(int argc, char** argv)
             jumping = true;
         if (jumping == true && !(posZ > 400))
         {
-            posZ += 50; // moves up player by 5 pixels
+            posZ += 5; // moves up player by 5 pixels
         }
         if (jumping == true && posZ > 400)
         {
@@ -173,11 +298,11 @@ int main(int argc, char** argv)
             posZ = 0; // msets player to ground
             falling = false;
         }
-        
+
         if (wsad[0])//move forward
         {
-            if (worldMap[int(posX + dirX * (moveSpeed + rotSpeed / 2))][int(posY)] == false) posX += dirX * (moveSpeed + rotSpeed / 2);
-            if (worldMap[int(posX)][int(posY + dirY * (moveSpeed + rotSpeed / 2))] == false) posY += dirY * (moveSpeed + rotSpeed / 2);
+            if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
+            if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
         }
         if (wsad[1])//move backward
         {
@@ -214,7 +339,5 @@ done:
     gRenderer = NULL;
 
     SDL_Quit();
-
-    std::cin.ignore();
     return 0;
 }
