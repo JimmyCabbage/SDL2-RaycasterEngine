@@ -46,21 +46,23 @@ int worldMap[mapWidth][mapHeight] =
 int main(int argc, char** argv)
 {
     bool sprinting = false;
+    bool jumping = false;
+    bool falling = false;
 
-    int wsad[5] = { 0, 0, 0, 0, 0 };
+    int wsad[6] = { 0, 0, 0, 0, 0, 0 };
 
     double moveSpeed, rotSpeed;
 
     double frameTime;
 
-    double posX = 22, posY = 12; // x and y position in start
+    double posX = 22, posY = 12, posZ = 0; // x, y, and z position in start
     double dirX = -1, dirY = 0; // direction when start
     double planeX = 0, planeY = 0.66; // 2d version of camera plane
 
     double time = 0; //time of current frame
     double oldTime = 0; // time of the previous frame
 
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
 	{
 		std::cerr << "Could not initiate SDL: " << SDL_GetError() << '\n';
 		exit(1);
@@ -196,7 +198,15 @@ int main(int argc, char** argv)
                 color.b = color.b / 2;
             }
 
-            //draw the pixels of the stripe as a vertical line
+            //draw the pixels of the stripe as a vertical linefor the ceiling
+            SDL_SetRenderDrawColor(gRenderer, 200, 200, 200, 255);
+            SDL_RenderDrawLine(gRenderer, x, 0, x, drawStart);
+
+            //draw the pixels of the stripe as a vertical linefor floor
+            SDL_SetRenderDrawColor(gRenderer, 100, 100, 100, 255);
+            SDL_RenderDrawLine(gRenderer, x, drawEnd, x, SCR_HEIGHT);
+
+            //draw the pixels of the stripe as a vertical line for the walls
             SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, 255);
             SDL_RenderDrawLine(gRenderer, x, drawStart, x, drawEnd);
         }
@@ -242,6 +252,11 @@ int main(int argc, char** argv)
                 case SDLK_LSHIFT:
                     wsad[4] = event.type == SDL_KEYDOWN;
                     break;
+                case SDLK_SPACE:
+                    wsad[5] = event.type == SDL_KEYDOWN;
+                    break;
+                case SDLK_ESCAPE:
+                    goto done;
                 case 'q': goto done;
                 default: break;
                 }
@@ -256,10 +271,15 @@ int main(int argc, char** argv)
         if (wsad[4])
         {
             //speed modifiers
-            moveSpeed = frameTime * 900.0; //the constant value is in squares/second
+            moveSpeed = frameTime * 6.5; //the constant value is in squares/second
             rotSpeed = frameTime * 1.0; //the constant value is in radians/second
         }
-        
+        if (wsad[5] && jumping == false)
+            jumping = true;
+        if (jumping == true)
+        {
+
+        }
 
         if (wsad[0])
         {
