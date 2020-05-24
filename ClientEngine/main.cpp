@@ -3,60 +3,32 @@
 #include <cmath>
 #include <SDL2/SDL.h>
 
-const int SCR_HEIGHT = 720;
-const int SCR_WIDTH = 1280;
-
-const int mapWidth = 24;
-const int mapHeight = 24;
-
-struct ColorRGB
-{
-    int r, g, b;
-};
-
-int worldMap[mapWidth][mapHeight] =
-{
-  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
-  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
-  {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-};
-
+#include "window.h"
+#include "map.h"
+#include "player.h"
 
 int main(int argc, char** argv)
 {
-    bool jumping = false;
-    bool falling = false;
+    // initialize player variables
+    struct Player player;
+    player.jumping = false;
+    player.falling = false;
 
-    int wsad[6] = { 0, 0, 0, 0, 0, 0 };
-
-    double moveSpeed, rotSpeed;
+    player.pitch = 0;
+    player.wsad[0] = 0;
+    player.wsad[1] = 0;
+    player.wsad[2] = 0;
+    player.wsad[3] = 0;
+    player.wsad[4] = 0;
+    player.wsad[5] = 0;
+    player.wsad[6] = 0;
+    player.wsad[7] = 0;
 
     double frameTime;
 
-    double posX = 22, posY = 12, posZ = 0; // x, y, and z position in start
-    double dirX = -1, dirY = 0; // direction when start
-    double planeX = 0, planeY = 0.66; // 2d version of camera plane
+    player.posX = 22, player.posY = 12, player.posZ = 0; // setup player x, y, and z variables
+    player.dirX = -1, player.dirY = 0; // direction when start
+    player.planeX = 0, player.planeY = 0.66; // 2d version of camera plane
 
     double time = 0; //time of current frame
     double oldTime = 0; // time of the previous frame
@@ -87,129 +59,8 @@ int main(int argc, char** argv)
 
     while (1)
     {
-        for (int x = 0; x < SCR_WIDTH; x++)
-        {
-            double cameraX = 2 * double(x) / double(SCR_WIDTH) - 1; // x coordinate in cameraspace
-            double rayDirX = dirX + planeX * cameraX;
-            double rayDirY = dirY + planeY * cameraX;
-
-            int mapX = int(posX);
-            int mapY = int(posY);
-
-            double sideDistX, sideDistY, perpWallDist, deltaDistX, deltaDistY;
-
-            deltaDistX = std::abs(1 / rayDirX);
-            deltaDistY = std::abs(1 / rayDirY);
-
-            int stepX, stepY, hit = 0, side;
-
-            //calculate step and initial sideDist
-            if (rayDirX < 0)
-            {
-                stepX = -1;
-                sideDistX = (posX - mapX) * deltaDistX;
-            }
-            else
-            {
-                stepX = 1;
-                sideDistX = (mapX + 1.0 - posX) * deltaDistX;
-            }
-            if (rayDirY < 0)
-            {
-                stepY = -1;
-                sideDistY = (posY - mapY) * deltaDistY;
-            }
-            else
-            {
-                stepY = 1;
-                sideDistY = (mapY + 1.0 - posY) * deltaDistY;
-            }
-
-            //perform DDA
-            while (hit == 0)
-            {
-                //jump to next map square, OR in x-direction, OR in y-direction
-                if (sideDistX < sideDistY)
-                {
-                    sideDistX += deltaDistX;
-                    mapX += stepX;
-                    side = 0;
-                }
-                else
-                {
-                    sideDistY += deltaDistY;
-                    mapY += stepY;
-                    side = 1;
-                }
-                //Check if ray has hit a wall
-                if (worldMap[mapX][mapY] > 0) hit = 1;
-            }
-
-            //Calculate distance projected on camera direction (Euclidean distance will give fisheye effect!)
-            if (side == 0) perpWallDist = (mapX - posX + (1 - stepX) / 2) / rayDirX;
-            else           perpWallDist = (mapY - posY + (1 - stepY) / 2) / rayDirY;
-
-            //Calculate height of line to draw on screen
-            int lineHeight = (int)(SCR_WIDTH / perpWallDist);
-
-            //calculate lowest and highest pixel to fill in current stripe
-            int drawStart = (-lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
-            if (drawStart < 0)drawStart = 0;
-            int drawEnd = (lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
-            if (drawEnd >= SCR_HEIGHT)drawEnd = SCR_HEIGHT - 1;
-
-            //choose wall color
-            ColorRGB color;
-            switch (worldMap[mapX][mapY])
-            {
-            case 1://red
-                color.r = 255;
-                color.g = 0;
-                color.b = 0;
-                break;
-            case 2://green
-                color.r = 0;
-                color.g = 255;
-                color.b = 0;
-                break;
-            case 3://blue
-                color.r = 0;
-                color.g = 0;
-                color.b = 255;
-                break;
-            case 4://white
-                color.r = 255;
-                color.g = 255;
-                color.b = 255;
-                break;
-            default://yellow
-                color.r = 255;
-                color.g = 255;
-                color.b = 0;
-                break;
-            }
-
-            //give x and y sides different brightness
-            if (side == 1)
-            {
-                color.r = color.r / 2;
-                color.g = color.g / 2;
-                color.b = color.b / 2;
-            }
-
-            //draw the pixels of the stripe as a vertical linefor the ceiling
-            SDL_SetRenderDrawColor(gRenderer, 200, 200, 200, 255);
-            SDL_RenderDrawLine(gRenderer, x, 0, x, drawStart);
-
-            //draw the pixels of the stripe as a vertical linefor floor
-            SDL_SetRenderDrawColor(gRenderer, 100, 100, 100, 255);
-            SDL_RenderDrawLine(gRenderer, x, drawEnd, x, SCR_HEIGHT);
-
-            //draw the pixels of the stripe as a vertical line for the walls
-            SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, 255);
-            SDL_RenderDrawLine(gRenderer, x, drawStart, x, drawEnd);
-        }
-
+        drawLineRaycaster(gRenderer, &player);
+        
         SDL_RenderPresent(gRenderer);
         SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
         SDL_RenderClear(gRenderer);
@@ -218,11 +69,9 @@ int main(int argc, char** argv)
         oldTime = time;
         time = SDL_GetTicks();
         frameTime = (time - oldTime) / 1000.0; //frameTime is the time this frame has taken, in seconds
-        std::cout << (1.0 / frameTime) << '\n'; //FPS counter
+        //std::cout << (1.0 / frameTime) << '\n'; //FPS counter
 
         SDL_Event event;
-        double oldDirX;
-        double oldPlaneX;
 
         while (SDL_PollEvent(&event))
         {
@@ -237,22 +86,28 @@ int main(int argc, char** argv)
                 switch (event.key.keysym.sym)
                 {
                 case 'w':
-                    wsad[0] = event.type == SDL_KEYDOWN;
+                    player.wsad[0] = event.type == SDL_KEYDOWN;
                     break;
                 case 's':
-                    wsad[1] = event.type == SDL_KEYDOWN;
+                    player.wsad[1] = event.type == SDL_KEYDOWN;
                     break;
                 case 'a':
-                    wsad[3] = event.type == SDL_KEYDOWN;
+                    player.wsad[3] = event.type == SDL_KEYDOWN;
                     break;
                 case 'd':
-                    wsad[2] = event.type == SDL_KEYDOWN;
+                    player.wsad[2] = event.type == SDL_KEYDOWN;
                     break;
                 case SDLK_LSHIFT:
-                    wsad[4] = event.type == SDL_KEYDOWN;
+                    player.wsad[4] = event.type == SDL_KEYDOWN;
                     break;
                 case SDLK_SPACE:
-                    wsad[5] = event.type == SDL_KEYDOWN;
+                    player.wsad[5] = event.type == SDL_KEYDOWN;
+                    break;
+                case SDLK_PAGEUP:
+                    player.wsad[6] = event.type == SDL_KEYDOWN;
+                    break;
+                case SDLK_PAGEDOWN:
+                    player.wsad[7] = event.type == SDL_KEYDOWN;
                     break;
                 case SDLK_ESCAPE:
                     goto done;
@@ -265,70 +120,7 @@ int main(int argc, char** argv)
             }
         }
 
-
-
-        //speed modifiers
-        rotSpeed = frameTime * 1.0; //the constant value is in radians/second
-
-        if (jumping)
-            moveSpeed = frameTime * 5.0; // boost the speed when jumping
-        else if (wsad[4])//sprinting
-            moveSpeed = frameTime * 6.0;
-        else
-            moveSpeed = frameTime * 3.0; //the constant value is in squares/second
-
-
-        if (wsad[5] && jumping == false && falling == false)
-            jumping = true;
-        if (jumping == true && !(posZ > 400))
-        {
-            posZ += 5; // moves up player by 5 pixels
-        }
-        if (jumping == true && posZ > 400)
-        {
-            jumping = false;
-            falling = true;
-        }
-        if (falling == true && !(posZ <= 0))
-        {
-            posZ -= 5; // moves player down by 5 pixels
-        }
-        if (falling == true && posZ <= 0)
-        {
-            posZ = 0; // msets player to ground
-            falling = false;
-        }
-
-        if (wsad[0])//move forward
-        {
-            if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
-            if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
-        }
-        if (wsad[1])//move backward
-        {
-            if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
-            if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
-        }
-        if (wsad[2])//turn left
-        {
-            //both camera direction and camera plane must be rotated
-            oldDirX = dirX;
-            dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
-            dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
-            oldPlaneX = planeX;
-            planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
-            planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
-        }
-        if (wsad[3])//turn right
-        {
-            //both camera direction and camera plane must be rotated
-            oldDirX = dirX;
-            dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
-            dirY = oldDirX * sin(rotSpeed) + dirY * cos(-rotSpeed);
-            oldPlaneX = planeX;
-            planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
-            planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
-        }
+        playerMovement(&player, frameTime);
     }
 
 done:
