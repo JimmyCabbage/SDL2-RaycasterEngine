@@ -3,11 +3,24 @@
 #include <cmath>
 #include <SDL2/SDL.h>
 
-const int SCR_HEIGHT = 720;
-const int SCR_WIDTH = 1280;
+const int SCR_HEIGHT = 769;
+const int SCR_WIDTH = 1025; // make this so that when you divide it by two you can get the middle pixel. otherwise known as odd numbers
 
 const int mapWidth = 24;
 const int mapHeight = 24;
+
+const int hudHeight = 90;
+
+SDL_Rect hudSquare = { 0, SCR_HEIGHT - hudHeight, SCR_WIDTH, hudHeight };
+
+
+/*
+/
+/ TODO:
+/   Move code into functions
+/   Use structs
+/
+*/
 
 struct ColorRGB
 {
@@ -48,13 +61,14 @@ int main(int argc, char** argv)
     bool jumping = false;
     bool falling = false;
 
-    int wsad[6] = { 0, 0, 0, 0, 0, 0 };
+    int wsad[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
     double moveSpeed, rotSpeed;
 
     double frameTime;
 
     double posX = 22, posY = 12, posZ = 0; // x, y, and z position in start
+    double pitch = 0;
     double dirX = -1, dirY = 0; // direction when start
     double planeX = 0, planeY = 0.66; // 2d version of camera plane
 
@@ -153,9 +167,9 @@ int main(int argc, char** argv)
             int lineHeight = (int)(SCR_WIDTH / perpWallDist);
 
             //calculate lowest and highest pixel to fill in current stripe
-            int drawStart = (-lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
+            int drawStart = int(-lineHeight / 2 + SCR_HEIGHT / 2) + int(posZ / perpWallDist) + int(pitch);
             if (drawStart < 0)drawStart = 0;
-            int drawEnd = (lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
+            int drawEnd = int(lineHeight / 2 + SCR_HEIGHT / 2) + int(posZ / perpWallDist) + int(pitch);
             if (drawEnd >= SCR_HEIGHT)drawEnd = SCR_HEIGHT - 1;
 
             //choose wall color
@@ -209,16 +223,21 @@ int main(int argc, char** argv)
             SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, 255);
             SDL_RenderDrawLine(gRenderer, x, drawStart, x, drawEnd);
         }
+        //draw weapon
+
+        //draw hud
+        SDL_SetRenderDrawColor(gRenderer, 0, 200, 200, 255);
+        SDL_RenderFillRect(gRenderer, &hudSquare);
+
 
         SDL_RenderPresent(gRenderer);
-        SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
         SDL_RenderClear(gRenderer);
 
         //timing for input and FPS counter
         oldTime = time;
         time = SDL_GetTicks();
         frameTime = (time - oldTime) / 1000.0; //frameTime is the time this frame has taken, in seconds
-        std::cout << (1.0 / frameTime) << '\n'; //FPS counter
+        //std::cout << (1.0 / frameTime) << '\n'; //FPS counter
 
         SDL_Event event;
         double oldDirX;
@@ -230,7 +249,6 @@ int main(int argc, char** argv)
             {
             case SDL_QUIT:
                 goto done;
-                break;
 
             case SDL_KEYDOWN:
             case SDL_KEYUP:
@@ -254,9 +272,14 @@ int main(int argc, char** argv)
                 case SDLK_SPACE:
                     wsad[5] = event.type == SDL_KEYDOWN;
                     break;
+                case SDLK_PAGEUP:
+                    wsad[6] = event.type == SDL_KEYDOWN;
+                    break;
+                case SDLK_PAGEDOWN:
+                    wsad[7] = event.type == SDL_KEYDOWN;
+                    break;
                 case SDLK_ESCAPE:
                     goto done;
-                case 'q': goto done;
                 default: break;
                 }
 
@@ -271,27 +294,37 @@ int main(int argc, char** argv)
         rotSpeed = frameTime * 1.0; //the constant value is in radians/second
 
         if (jumping)
-            moveSpeed = frameTime * 5.0; // boost the speed when jumping
+            moveSpeed = frameTime * 4.5; // boost the speed when jumping
+        else if (falling)
+            moveSpeed = frameTime * 4.0;
         else if (wsad[4])//sprinting
             moveSpeed = frameTime * 6.0;
         else
             moveSpeed = frameTime * 3.0; //the constant value is in squares/second
+        if (wsad[6] && pitch <= 400) // look up
+            pitch += 5.0;
+        else if (!wsad[6] && pitch >= 0)
+            pitch -= 5.0;
 
+        if (wsad[7] && pitch >= -400) // look down
+            pitch -= 5.0;
+        else if (!wsad[7] && pitch >= 0)
+            pitch += 5.0;
 
         if (wsad[5] && jumping == false && falling == false)
             jumping = true;
-        if (jumping == true && !(posZ > 400))
+        if (jumping == true && !(posZ > 400) && wsad[5])
         {
-            posZ += 5; // moves up player by 5 pixels
+            posZ += 15; // moves up player by 5 pixels
         }
-        if (jumping == true && posZ > 400)
+        if (jumping == true && !(wsad[5]) || posZ > 400 && jumping == true)
         {
             jumping = false;
             falling = true;
         }
         if (falling == true && !(posZ <= 0))
         {
-            posZ -= 5; // moves player down by 5 pixels
+            posZ -= 30; // moves player down by 5 pixels
         }
         if (falling == true && posZ <= 0)
         {
