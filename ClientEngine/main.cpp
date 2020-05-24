@@ -45,7 +45,6 @@ int worldMap[mapWidth][mapHeight] =
 
 int main(int argc, char** argv)
 {
-    bool sprinting = false;
     bool jumping = false;
     bool falling = false;
 
@@ -154,9 +153,9 @@ int main(int argc, char** argv)
             int lineHeight = (int)(SCR_WIDTH / perpWallDist);
 
             //calculate lowest and highest pixel to fill in current stripe
-            int drawStart = -lineHeight / 2 + SCR_HEIGHT / 2;
+            int drawStart = (-lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
             if (drawStart < 0)drawStart = 0;
-            int drawEnd = lineHeight / 2 + SCR_HEIGHT / 2;
+            int drawEnd = (lineHeight / 2 + SCR_HEIGHT / 2) + (posZ / perpWallDist);
             if (drawEnd >= SCR_HEIGHT)drawEnd = SCR_HEIGHT - 1;
 
             //choose wall color
@@ -265,33 +264,52 @@ int main(int argc, char** argv)
                 break;
             }
         }
+
+        
+
         //speed modifiers
-        moveSpeed = frameTime * 3.0; //the constant value is in squares/second
         rotSpeed = frameTime * 1.0; //the constant value is in radians/second
-        if (wsad[4])
-        {
-            //speed modifiers
-            moveSpeed = frameTime * 6.5; //the constant value is in squares/second
-            rotSpeed = frameTime * 1.0; //the constant value is in radians/second
-        }
-        if (wsad[5] && jumping == false)
+
+        if (jumping)
+            moveSpeed = frameTime * 5.0; // boost the speed when jumping
+        else if (wsad[4])//sprinting
+            moveSpeed = frameTime * 6.0;
+        else
+            moveSpeed = frameTime * 3.0; //the constant value is in squares/second
+
+
+        if (wsad[5] && jumping == false && falling == false)
             jumping = true;
-        if (jumping == true)
+        if (jumping == true && !(posZ > 400))
         {
-
+            posZ += 5; // moves up player by 5 pixels
         }
-
-        if (wsad[0])
+        if (jumping == true && posZ > 400)
+        {
+            jumping = false;
+            falling = true;
+        }
+        if (falling == true && !(posZ <= 0))
+        {
+            posZ -= 5; // moves player down by 5 pixels
+        }
+        if (falling == true && posZ <= 0)
+        {
+            posZ = 0; // msets player to ground
+            falling = false;
+        }
+        
+        if (wsad[0])//move forward
         {
             if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
             if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
         }
-        if (wsad[1])
+        if (wsad[1])//move backward
         {
             if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
             if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
         }
-        if (wsad[2])
+        if (wsad[2])//turn left
         {
             //both camera direction and camera plane must be rotated
             oldDirX = dirX;
@@ -301,7 +319,7 @@ int main(int argc, char** argv)
             planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
             planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
         }
-        if (wsad[3])
+        if (wsad[3])//turn right
         {
             //both camera direction and camera plane must be rotated
             oldDirX = dirX;
