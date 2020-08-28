@@ -15,10 +15,10 @@ struct Player
 	bool falling; //falling?
 
 	double moveSpeed, rotSpeed; // used for the speed of the player
+	double jumpMSpeed;
 };
 
 void playerMovement(struct Player* p, double frameTime);
-void readKeys(struct Player* p);
 
 
 #endif

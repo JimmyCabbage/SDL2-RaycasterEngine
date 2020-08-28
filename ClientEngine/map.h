@@ -1,13 +1,13 @@
 #ifndef MAP_H
 #define MAP_H
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <cmath>
 
 #include "window.h"
 #include "player.h"
 struct ColorRGB
 {
-    int r, g, b;
+	int r, g, b;
 };
 
 const static int mapWidth = 24;
@@ -41,6 +41,6 @@ static int worldMap[mapWidth][mapHeight] =
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-void drawLineRaycaster(SDL_Renderer* gRenderer, struct Player* p);
+void drawLineRaycaster(SDL_Renderer** gRenderer, struct Player* p);
 
 #endif
