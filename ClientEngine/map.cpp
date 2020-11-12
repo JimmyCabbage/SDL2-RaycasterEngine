@@ -2,7 +2,7 @@
 #include <future>
 #include <algorithm>
 
-void drawLineRaycaster(SDL_Renderer** gRenderer, struct Player* p)
+void drawLineRaycaster(SDL_Renderer* gRenderer, Player* p)
 {
 	for (int x = 0; x < SCR_WIDTH; x++)
 	{
@@ -125,25 +125,25 @@ void drawLineRaycaster(SDL_Renderer** gRenderer, struct Player* p)
 		const auto lightGrey = std::clamp(side == 1 ? (200 - (int)(perpWallDist / 4)) / 2 : 200 - (int)(perpWallDist / 4), 0, 255);
 
 		//draw the pixels of the stripe as a vertical linefor the ceiling
-		SDL_SetRenderDrawColor(*gRenderer, lightGrey, lightGrey, lightGrey, 255);
-		SDL_RenderDrawLine(*gRenderer, x, 0, x, drawStart);
+		SDL_SetRenderDrawColor(gRenderer, lightGrey, lightGrey, lightGrey, 255);
+		SDL_RenderDrawLine(gRenderer, x, 0, x, drawStart);
 
 		//draw the pixels of the stripe as a vertical linefor floor
-		SDL_SetRenderDrawColor(*gRenderer, darkGrey, darkGrey, darkGrey, 255);
-		SDL_RenderDrawLine(*gRenderer, x, drawEnd, x, SCR_HEIGHT);
+		SDL_SetRenderDrawColor(gRenderer, darkGrey, darkGrey, darkGrey, 255);
+		SDL_RenderDrawLine(gRenderer, x, drawEnd, x, SCR_HEIGHT);
 
 		//draw the pixels of the stripe as a vertical line for the walls
-		SDL_SetRenderDrawColor(*gRenderer, color.r, color.g, color.b, 255);
-		SDL_RenderDrawLine(*gRenderer, x, drawStart, x, drawEnd);
+		SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b, 255);
+		SDL_RenderDrawLine(gRenderer, x, drawStart, x, drawEnd);
 	}
 }
 
-void drawHUD(SDL_Renderer** gRenderer, const int w, const int h)
+void drawHUD(SDL_Renderer* gRenderer, const int w, const int h)
 {
 	//draw hud
-	SDL_SetRenderDrawColor(*gRenderer, 220, 220, 220, 230);
+	SDL_SetRenderDrawColor(gRenderer, 220, 220, 220, 230);
 	const int topleftx = h / 8;
 	const SDL_Rect hudBox = { 0, h - topleftx, w, topleftx };
-	SDL_RenderDrawRect(*gRenderer, &hudBox);
-	SDL_RenderFillRect(*gRenderer, &hudBox);
+	SDL_RenderDrawRect(gRenderer, &hudBox);
+	SDL_RenderFillRect(gRenderer, &hudBox);
 }

@@ -1,7 +1,7 @@
 #include "player.h"
 #include <iostream>
 
-void playerMovement(struct Player* p, double frameTime)
+void playerMovement(Player* p, double frameTime)
 {
 	double oldDirX;
 	double oldPlaneX;
@@ -48,6 +48,7 @@ void playerMovement(struct Player* p, double frameTime)
 		p->jumping = false;
 	}
 
+	/*
 	if (p->wsad[6])//look up
 	{
 		p->pitch += 5.0;
@@ -56,6 +57,7 @@ void playerMovement(struct Player* p, double frameTime)
 	{
 		p->pitch -= 5.0;
 	}
+	*/
 
 	if (p->wsad[0])//move forward
 	{

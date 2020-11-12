@@ -8,60 +8,62 @@
 #include "map.h"
 #include "player.h"
 
-#define MULTITHREADED
+//#define MULTITHREADED
 
 int main(int argc, char** argv)
 {
-	// initialize player variables
-	struct Player player;
-	player.jumping = false;
-	player.falling = false;
-
-	player.pitch = 0;
-	player.wsad[0] = 0;
-	player.wsad[1] = 0;
-	player.wsad[2] = 0;
-	player.wsad[3] = 0;
-	player.wsad[4] = 0;
-	player.wsad[5] = 0;
-	player.wsad[6] = 0;
-	player.wsad[7] = 0;
-
-	player.jumpMSpeed = 0.0;
-
 	double frameTime;
-
-	player.posX = 22, player.posY = 12, player.posZ = 0; // setup player x, y, and z variables
-	player.dirX = -1, player.dirY = 0; // direction when start
-	player.planeX = 0, player.planeY = 0.66; // 2d version of camera plane
 
 	double time = 0; //time of current frame
 	double oldTime = 0; // time of the previous frame
 
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		std::cerr << "Could not initiate SDL: " << SDL_GetError() << '\n';
 		exit(1);
 	}
 
-	SDL_Window* gWindow = SDL_CreateWindow("Raycaster", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCR_WIDTH, SCR_HEIGHT, SDL_WINDOW_SHOWN);
-
+	SDL_Window* gWindow = nullptr;
+	gWindow = SDL_CreateWindow("Raycaster", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	if (!gWindow)
 	{
 		std::cerr << "Unable to create SDL window: " << SDL_GetError() << '\n';
 		exit(1);
 	}
 
-	SDL_Renderer* gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_SOFTWARE);
-
+	SDL_Renderer* gRenderer = nullptr;
+	gRenderer = SDL_CreateRenderer(gWindow, -1, 0);
 	if (!gRenderer)
 	{
 		std::cerr << "Unable to create SDL renderer: " << SDL_GetError() << '\n';
 		exit(1);
 	}
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  // make the scaled rendering look smoother.
+	SDL_RenderSetLogicalSize(gRenderer, SCR_WIDTH, SCR_HEIGHT);
 
 	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
+	// initialize player variables
+	Player player;
+	player.jumping = false;
+	player.falling = false;
+
+	player.pitch = 0;
+	player.wsad[0] = false;
+	player.wsad[1] = false;
+	player.wsad[2] = false;
+	player.wsad[3] = false;
+	player.wsad[4] = false;
+	player.wsad[5] = false;
+	player.wsad[6] = false;
+	player.wsad[7] = false;
+
+	player.jumpMSpeed = 0.0;
+
+	player.posX = 22, player.posY = 12, player.posZ = 0; // setup player x, y, and z variables
+	player.dirX = -1, player.dirY = 0; // direction when start
+	player.planeX = 0, player.planeY = 0.66; // 2d version of camera plane
 
 	bool ndone = true;
 	while (ndone)
@@ -69,9 +71,9 @@ int main(int argc, char** argv)
 #ifdef MULTITHREADED
 		auto renderDraw = std::async(std::launch::async, drawLineRaycaster, &gRenderer, &player);
 #else
-		drawLineRaycaster(&gRenderer, &player);
+		drawLineRaycaster(gRenderer, &player);
 
-		drawHUD(&gRenderer, SCR_WIDTH, SCR_HEIGHT);
+		drawHUD(gRenderer, SCR_WIDTH, SCR_HEIGHT);
 
 		SDL_RenderPresent(gRenderer);
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
@@ -82,10 +84,6 @@ int main(int argc, char** argv)
 		oldTime = time;
 		time = SDL_GetTicks();
 		frameTime = (time - oldTime) / 1000.0; //frameTime is the time this frame has taken, in seconds
-#ifndef NDEBUG
-		//std::cout << (1.0 / frameTime) << '\n'; //FPS counter
-		std::cout << player.posZ << std::endl;
-#endif
 
 		SDL_Event event;
 
@@ -131,7 +129,7 @@ int main(int argc, char** argv)
 				case 'q': ndone = false; break;
 				default: break;
 				}
-
+				break;
 			default:
 				break;
 			}
@@ -150,10 +148,10 @@ int main(int argc, char** argv)
 	}
 
 	SDL_DestroyWindow(gWindow);
-	gWindow = NULL;
+	gWindow = nullptr;
 
 	SDL_DestroyRenderer(gRenderer);
-	gRenderer = NULL;
+	gRenderer = nullptr;
 
 	SDL_Quit();
 	return 0;

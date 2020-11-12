@@ -9,7 +9,7 @@ struct Player
 	double planeX, planeY; // 2d version of camera plane
 	double pitch; // up or down
 
-	int wsad[8]; // check if button pressed
+	bool wsad[8]; // check if button pressed
 
 	bool jumping; //jumping?
 	bool falling; //falling?
@@ -18,7 +18,7 @@ struct Player
 	double jumpMSpeed;
 };
 
-void playerMovement(struct Player* p, double frameTime);
+void playerMovement(Player* p, double frameTime);
 
 
 #endif
