@@ -137,3 +137,13 @@ void drawLineRaycaster(SDL_Renderer** gRenderer, struct Player* p)
 		SDL_RenderDrawLine(*gRenderer, x, drawStart, x, drawEnd);
 	}
 }
+
+void drawHUD(SDL_Renderer** gRenderer, const int w, const int h)
+{
+	//draw hud
+	SDL_SetRenderDrawColor(*gRenderer, 220, 220, 220, 230);
+	const int topleftx = h / 8;
+	const SDL_Rect hudBox = { 0, h - topleftx, w, topleftx };
+	SDL_RenderDrawRect(*gRenderer, &hudBox);
+	SDL_RenderFillRect(*gRenderer, &hudBox);
+}

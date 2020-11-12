@@ -43,4 +43,6 @@ static int worldMap[mapWidth][mapHeight] =
 
 void drawLineRaycaster(SDL_Renderer** gRenderer, struct Player* p);
 
+void drawHUD(SDL_Renderer** gRenderer, const int w, const int h);
+
 #endif

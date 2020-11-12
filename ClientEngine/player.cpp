@@ -7,13 +7,13 @@ void playerMovement(struct Player* p, double frameTime)
 	double oldPlaneX;
 
 	//speed modifiers
-	p->rotSpeed = frameTime * 1.0; //the constant value is in radians/second
+	p->rotSpeed = frameTime * 2.0; //the constant value is in radians/second
 	float addedSpeed = 0.0f;
 
 	if (p->jumping)
 		addedSpeed = 0.1f; // boost the speed when jumping
 	if (p->wsad[4])//sprinting
-		addedSpeed = 0.11f;
+		addedSpeed = 7.11f;
 	if (!p->wsad[4] && !p->jumping)
 		addedSpeed = 0.0f;
 	if (p->wsad[4] && p->jumping)

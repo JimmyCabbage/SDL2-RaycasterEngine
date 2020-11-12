@@ -8,6 +8,8 @@
 #include "map.h"
 #include "player.h"
 
+#define MULTITHREADED
+
 int main(int argc, char** argv)
 {
 	// initialize player variables
@@ -57,8 +59,9 @@ int main(int argc, char** argv)
 		std::cerr << "Unable to create SDL renderer: " << SDL_GetError() << '\n';
 		exit(1);
 	}
-	SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-	SDL_RenderClear(gRenderer);
+
+	SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
 	bool ndone = true;
 	while (ndone)
@@ -67,6 +70,9 @@ int main(int argc, char** argv)
 		auto renderDraw = std::async(std::launch::async, drawLineRaycaster, &gRenderer, &player);
 #else
 		drawLineRaycaster(&gRenderer, &player);
+
+		drawHUD(&gRenderer, SCR_WIDTH, SCR_HEIGHT);
+
 		SDL_RenderPresent(gRenderer);
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 		SDL_RenderClear(gRenderer);
@@ -135,6 +141,7 @@ int main(int argc, char** argv)
 		
 #ifdef MULTITHREADED
 		renderDraw.get();
+		drawHUD(&gRenderer, SCR_WIDTH, SCR_HEIGHT);
 
 		SDL_RenderPresent(gRenderer);
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
