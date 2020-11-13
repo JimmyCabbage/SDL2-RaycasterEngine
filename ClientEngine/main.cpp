@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <iostream>
 #include <cmath>
 #include <future>
@@ -68,9 +67,6 @@ int main(int argc, char** argv)
 	bool ndone = true;
 	while (ndone)
 	{
-#ifdef MULTITHREADED
-		auto renderDraw = std::async(std::launch::async, drawLineRaycaster, &gRenderer, &player);
-#else
 		drawLineRaycaster(gRenderer, &player);
 
 		drawHUD(gRenderer, SCR_WIDTH, SCR_HEIGHT);
@@ -78,18 +74,20 @@ int main(int argc, char** argv)
 		SDL_RenderPresent(gRenderer);
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 		SDL_RenderClear(gRenderer);
-#endif
 
 		//timing for input and FPS counter
 		oldTime = time;
 		time = SDL_GetTicks();
 		frameTime = (time - oldTime) / 1000.0; //frameTime is the time this frame has taken, in seconds
+		
+		std::mutex playerMutex;
+		std::thread playerMovementThread = std::thread(&playerMovement, &player, std::ref(playerMutex), frameTime);
 
-		SDL_Event event;
+		SDL_Event ev;
 
-		while (SDL_PollEvent(&event))
+		while (SDL_PollEvent(&ev))
 		{
-			switch (event.type)
+			switch (ev.type)
 			{
 			case SDL_QUIT:
 				ndone = false;
@@ -97,31 +95,55 @@ int main(int argc, char** argv)
 
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				switch (event.key.keysym.sym)
+				switch (ev.key.keysym.sym)
 				{
 				case 'w':
-					player.wsad[0] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[0] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case 's':
-					player.wsad[1] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[1] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_LEFT:
-					player.wsad[3] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[3] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_RIGHT:
-					player.wsad[2] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[2] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_LSHIFT:
-					player.wsad[4] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[4] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_SPACE:
-					player.wsad[5] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[5] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_UP:
-					player.wsad[6] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[6] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_DOWN:
-					player.wsad[7] = event.type == SDL_KEYDOWN;
+				{
+					std::lock_guard lock(playerMutex);
+					player.wsad[7] = ev.type == SDL_KEYDOWN;
+				}
 					break;
 				case SDLK_ESCAPE:
 					ndone = false;
@@ -135,16 +157,8 @@ int main(int argc, char** argv)
 			}
 		}
 
-		playerMovement(&player, frameTime);
-		
-#ifdef MULTITHREADED
-		renderDraw.get();
-		drawHUD(&gRenderer, SCR_WIDTH, SCR_HEIGHT);
-
-		SDL_RenderPresent(gRenderer);
-		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
-		SDL_RenderClear(gRenderer);
-#endif
+		if (playerMovementThread.joinable())
+			playerMovementThread.join();
 	}
 
 	SDL_DestroyWindow(gWindow);

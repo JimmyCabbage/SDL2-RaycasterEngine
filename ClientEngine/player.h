@@ -1,9 +1,11 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include "map.h"
 
-struct Player
+#include <mutex>
+
+class Player
 {
+public:
 	double posX, posY, posZ; // x, y, and z position of player when start
 	double dirX, dirY; // direction when start
 	double planeX, planeY; // 2d version of camera plane
@@ -16,9 +18,12 @@ struct Player
 
 	double moveSpeed, rotSpeed; // used for the speed of the player
 	double jumpMSpeed;
+
+	Player(Player& p);
+	Player();
 };
 
-void playerMovement(Player* p, double frameTime);
+void playerMovement(Player* p, std::mutex& playermut, double frameTime);
 
 
 #endif

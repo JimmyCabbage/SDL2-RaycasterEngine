@@ -11,10 +11,10 @@ struct ColorRGB
 	int r, g, b;
 };
 
-const static int mapWidth = 24;
-const static int mapHeight = 24;
+constexpr static int mapWidth = 24;
+constexpr static int mapHeight = 24;
 
-const static int worldMap[mapWidth][mapHeight] =
+constexpr static int worldMap[mapWidth][mapHeight] =
 {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -42,7 +42,7 @@ const static int worldMap[mapWidth][mapHeight] =
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-void drawLineRaycaster(SDL_Renderer* gRenderer, struct Player* p);
+void drawLineRaycaster(SDL_Renderer* gRenderer, Player* p);
 
 void drawHUD(SDL_Renderer* gRenderer, const int w, const int h);
 
