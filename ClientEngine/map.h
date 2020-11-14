@@ -1,20 +1,12 @@
 #ifndef MAP_H
 #define MAP_H
-#include <SDL.h>
-#include <cmath>
 
-#include "window.h"
-#include "player.h"
+#include <cstdint>
 
-struct ColorRGB
-{
-	int r, g, b;
-};
+constexpr static uint16_t mapWidth = 24;
+constexpr static uint16_t mapHeight = 24;
 
-constexpr static int mapWidth = 24;
-constexpr static int mapHeight = 24;
-
-constexpr static int worldMap[mapWidth][mapHeight] =
+constexpr static uint32_t worldMap[mapWidth][mapHeight] =
 {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -41,9 +33,5 @@ constexpr static int worldMap[mapWidth][mapHeight] =
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
-
-void drawLineRaycaster(SDL_Renderer* gRenderer, Player* p);
-
-void drawHUD(SDL_Renderer* gRenderer, const int w, const int h);
 
 #endif
