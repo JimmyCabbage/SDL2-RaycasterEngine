@@ -166,7 +166,7 @@ void RaycastingWindow::mainLoop()
 		frameTime = ((time - oldTime) / 1000.0); //frameTime is the time this frame has taken, in seconds
 		oldTime = time;
 
-		std::thread playerMovementThread = std::thread(&Player::MoveT, &player, std::ref(playerMutex), frameTime);
+		std::thread playerMovementThread = std::thread(&Player::Move, &player, std::ref(playerMutex), frameTime);
 
 		handleEvents(ndone);
 		

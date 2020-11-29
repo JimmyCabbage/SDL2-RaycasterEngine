@@ -1,5 +1,6 @@
 #include "player.h"
 #include "map.h"
+#include <iostream>
 
 Player::Player(Player& p)
 {
@@ -16,6 +17,8 @@ Player::Player(Player& p)
 	wsad[5] = p.wsad[5];
 	wsad[6] = p.wsad[6];
 	wsad[7] = p.wsad[7];
+	wsad[8] = p.wsad[8];
+	wsad[9] = p.wsad[9];
 
 	jumping = p.jumping;
 	falling = p.falling;
@@ -41,6 +44,8 @@ Player::Player()
 	wsad[5] = false;
 	wsad[6] = false;
 	wsad[7] = false;
+	wsad[8] = false;
+	wsad[9] = false;
 
 	jumping = 0.0;
 	falling = 0.0;
@@ -51,13 +56,13 @@ Player::Player()
 	jumpMSpeed = 0.0;
 }
 
-void playerMovement(Player* p, std::mutex& playermut, double frameTime)
+void Player::Move(std::mutex& playermut, double frameTime)
 {
 	double oldDirX;
 	double oldPlaneX;
 
 	playermut.lock();
-	Player pCopy(*p);
+	Player pCopy(*this);
 	playermut.unlock();
 
 	//speed modifiers
@@ -138,8 +143,25 @@ void playerMovement(Player* p, std::mutex& playermut, double frameTime)
 		pCopy.planeX = pCopy.planeX * cos(-(pCopy.rotSpeed)) - pCopy.planeY * sin(pCopy.rotSpeed);
 		pCopy.planeY = oldPlaneX * sin(pCopy.rotSpeed) + pCopy.planeY * cos(pCopy.rotSpeed);
 	}
+	if (pCopy.wsad[8])//strafe left
+	{
+		//use crazy magic to rotate vector 90 degrees
+		//NOTE: THIS IS MY 3rd TIME IMPLEMENTING THIS? WHY DOES IT GO AWAY? DO I FORGET TO COMMIT? WHAT?
+		float nDirX = -pCopy.dirY;
+		float nDirY = pCopy.dirX;
+		if (worldMap[int(pCopy.posX + nDirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * pCopy.moveSpeed;
+		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * pCopy.moveSpeed)] == false) pCopy.posY += nDirY * pCopy.moveSpeed;
+	}
+	if (pCopy.wsad[9])//strafe right
+	{
+		//use crazy magic to rotate vector -90 degrees
+		float nDirX = pCopy.dirY;
+		float nDirY = -pCopy.dirX;
+		if (worldMap[int(pCopy.posX + nDirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * pCopy.moveSpeed;
+		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * pCopy.moveSpeed)] == false) pCopy.posY += nDirY * pCopy.moveSpeed;
+	}
 
 	playermut.lock();
-	*p = Player(pCopy);
+	*this = Player(pCopy);
 	playermut.unlock();
 }
