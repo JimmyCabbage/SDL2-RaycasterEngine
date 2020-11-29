@@ -148,6 +148,13 @@ void RaycastingWindow::mainLoop()
 	bool ndone = true;
 	while (ndone)
 	{
+		//timing for input and FPS counter
+		uint32_t time = SDL_GetTicks(); //time of current frame
+		frameTime = ((time - oldTime) / 1000.0); //frameTime is the time this frame has taken, in seconds
+		oldTime = time;
+
+		std::thread playerMovementThread = std::thread(&Player::Move, &player, std::ref(playerMutex), frameTime);
+
 		//drawHUD();
 
 		drawRaycaster();
@@ -160,13 +167,6 @@ void RaycastingWindow::mainLoop()
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 		SDL_RenderClear(gRenderer);
 		*/
-
-		//timing for input and FPS counter
-		uint32_t time = SDL_GetTicks(); //time of current frame
-		frameTime = ((time - oldTime) / 1000.0); //frameTime is the time this frame has taken, in seconds
-		oldTime = time;
-
-		std::thread playerMovementThread = std::thread(&Player::Move, &player, std::ref(playerMutex), frameTime);
 
 		handleEvents(ndone);
 		

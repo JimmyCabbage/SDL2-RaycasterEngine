@@ -147,16 +147,16 @@ void Player::Move(std::mutex& playermut, double frameTime)
 	{
 		//use crazy magic to rotate vector 90 degrees
 		//NOTE: THIS IS MY 3rd TIME IMPLEMENTING THIS? WHY DOES IT GO AWAY? DO I FORGET TO COMMIT? WHAT?
-		float nDirX = -pCopy.dirY;
-		float nDirY = pCopy.dirX;
+		double nDirX = -pCopy.dirY;
+		double nDirY = pCopy.dirX;
 		if (worldMap[int(pCopy.posX + nDirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * pCopy.moveSpeed;
 		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * pCopy.moveSpeed)] == false) pCopy.posY += nDirY * pCopy.moveSpeed;
 	}
 	if (pCopy.wsad[9])//strafe right
 	{
 		//use crazy magic to rotate vector -90 degrees
-		float nDirX = pCopy.dirY;
-		float nDirY = -pCopy.dirX;
+		double nDirX = pCopy.dirY;
+		double nDirY = -pCopy.dirX;
 		if (worldMap[int(pCopy.posX + nDirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * pCopy.moveSpeed;
 		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * pCopy.moveSpeed)] == false) pCopy.posY += nDirY * pCopy.moveSpeed;
 	}
