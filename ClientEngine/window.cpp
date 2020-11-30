@@ -6,6 +6,20 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <algorithm>
+/*
+ * 0 limits the colors
+ * 1 adds more colors
+ * NOTE: Should (probably) always have this enabled soon, instead of a switch. But computing colors may take more time
+*/
+#define EXTRACOLOR 0
+
+/*
+ * 0 makes the renderer add shading to walls
+ * 1 makes everything fully lit
+ * NOTE:
+ *
+*/
+#define FULLBRIGHT 0
 
 struct ColorRGB
 {
@@ -153,13 +167,11 @@ void RaycastingWindow::mainLoop()
 		frameTime = ((time - oldTime) / 1000.0); //frameTime is the time this frame has taken, in seconds
 		oldTime = time;
 
-		std::thread playerMovementThread = std::thread(&Player::Move, &player, std::ref(playerMutex), frameTime);
+		std::thread playerMovementThread = std::thread(&Player::Move, &player, std::ref(playerMutex), frameTime, (time / 1000.0));
 
 		//drawHUD();
 
 		drawRaycaster();
-
-		
 
 		SDL_RenderPresent(gRenderer);
 		//we don't need this because the raycaster is already supposed to fill the whole screen
@@ -273,6 +285,23 @@ void RaycastingWindow::drawRaycaster()
 			color.g = 255;
 			color.b = 255;
 			break;
+#if EXTRACOLOR
+		case 5://pink
+			color.r = 230;
+			color.g = 192;
+			color.b = 203;
+			break;
+		case 6://cyan
+			color.r = 92;
+			color.g = 249;
+			color.b = 255;
+			break;
+		case 7://dark magenta
+			color.r = 127;
+			color.g = 0;
+			color.b = 153;
+			break;
+#endif
 		default://yellow
 			color.r = 255;
 			color.g = 255;
@@ -280,6 +309,7 @@ void RaycastingWindow::drawRaycaster()
 			break;
 		}
 
+#if !(FULLBRIGHT)
 		//give x and y sides different brightness
 		if (side == 1)
 		{
@@ -296,6 +326,10 @@ void RaycastingWindow::drawRaycaster()
 		const auto darkGrey = std::clamp(side == 1 ? (100 - (int)(perpWallDist * 3)) / 2 : 100 - (int)(perpWallDist * 3), 0, 255);
 		//shade the ceiling to look nice
 		const auto lightGrey = std::clamp(side == 1 ? (200 - (int)(perpWallDist / 4)) / 2 : 200 - (int)(perpWallDist / 4), 0, 255);
+#else
+		const auto darkGrey = std::clamp(100, 0, 255);
+		const auto lightGrey = std::clamp(100, 0, 255);
+#endif
 
 		//draw the pixels of the stripe as a vertical linefor the ceiling
 		SDL_SetRenderDrawColor(gRenderer, lightGrey, lightGrey, lightGrey, 255);

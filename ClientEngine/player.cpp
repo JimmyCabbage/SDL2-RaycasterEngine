@@ -2,6 +2,15 @@
 #include "map.h"
 #include <iostream>
 
+/*
+ * 0 for collision checking
+ * 1 for no collision with level geometry
+ * NOTE: VERY DANGEROUS. Undefined behavior if set to 1. Use at your own risk.
+ * I take no responsibilities if this... let's say bricks your computer.
+ * YOU HAVE BEEN WARNED
+ */
+#define NCLIP 0
+
 Player::Player(Player& p)
 {
 	posX = p.posX; posY = p.posY; posZ = p.posZ;
@@ -22,9 +31,6 @@ Player::Player(Player& p)
 
 	jumping = p.jumping;
 	falling = p.falling;
-
-	moveSpeed = p.moveSpeed;
-	rotSpeed = p.rotSpeed;
 
 	jumpMSpeed = p.jumpMSpeed;
 }
@@ -50,23 +56,17 @@ Player::Player()
 	jumping = 0.0;
 	falling = 0.0;
 
-	moveSpeed = 0.0;
-	rotSpeed = 0.0;
-
 	jumpMSpeed = 0.0;
 }
 
-void Player::Move(std::mutex& playermut, double frameTime)
+void Player::Move(std::mutex& playermut, double frameTime, double time)
 {
-	double oldDirX;
-	double oldPlaneX;
-
 	playermut.lock();
 	Player pCopy(*this);
 	playermut.unlock();
 
 	//speed modifiers
-	pCopy.rotSpeed = frameTime * 2.0; //the constant value is in radians/second
+	double rotSpeed = frameTime * 2.0; //the constant value is in radians/second
 	float addedSpeed = 0.0f;
 
 	if (pCopy.jumping)
@@ -76,7 +76,7 @@ void Player::Move(std::mutex& playermut, double frameTime)
 	else if (!pCopy.wsad[4] && !pCopy.jumping)
 		addedSpeed = 0.0f;
 	
-	pCopy.moveSpeed = frameTime * (3.0 + (double)(addedSpeed / 4)); //the constant value is in squares/second
+	double moveSpeed = frameTime * (3.0 + (double)(addedSpeed / 4)); //the constant value is in squares/second
 
 	if (pCopy.wsad[5] && !pCopy.jumping && !pCopy.falling)
 		pCopy.jumping = true;
@@ -115,50 +115,74 @@ void Player::Move(std::mutex& playermut, double frameTime)
 
 	if (pCopy.wsad[0])//move forward
 	{
-		if (worldMap[int(pCopy.posX + pCopy.dirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += pCopy.dirX * pCopy.moveSpeed;
-		if (worldMap[int(pCopy.posX)][int(pCopy.posY + pCopy.dirY * pCopy.moveSpeed)] == false) pCopy.posY += pCopy.dirY * pCopy.moveSpeed;
+#if NCLIP
+		pCopy.posX += pCopy.dirX * moveSpeed;
+		pCopy.posY += pCopy.dirY * moveSpeed;
+#else
+		if (worldMap[int(pCopy.posX + pCopy.dirX * moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += pCopy.dirX * moveSpeed;
+		if (worldMap[int(pCopy.posX)][int(pCopy.posY + pCopy.dirY * moveSpeed)] == false) pCopy.posY += pCopy.dirY * moveSpeed;
+#endif
 	}
 	if (pCopy.wsad[1])//move backward
 	{
-		if (worldMap[int(pCopy.posX - pCopy.dirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX -= pCopy.dirX * pCopy.moveSpeed;
-		if (worldMap[int(pCopy.posX)][int(pCopy.posY - pCopy.dirY * pCopy.moveSpeed)] == false) pCopy.posY -= pCopy.dirY * pCopy.moveSpeed;
+#if NCLIP
+		pCopy.posX -= pCopy.dirX * moveSpeed;
+		pCopy.posY -= pCopy.dirY * moveSpeed;
+#else
+		if (worldMap[int(pCopy.posX - pCopy.dirX * moveSpeed)][int(pCopy.posY)] == false) pCopy.posX -= pCopy.dirX * moveSpeed;
+		if (worldMap[int(pCopy.posX)][int(pCopy.posY - pCopy.dirY * moveSpeed)] == false) pCopy.posY -= pCopy.dirY * moveSpeed;
+#endif
 	}
 	if (pCopy.wsad[2])//turn left
 	{
+		double oldDirX;
+		double oldPlaneX;
 		//both camera direction and camera plane must be rotated
 		oldDirX = pCopy.dirX;
-		pCopy.dirX = pCopy.dirX * cos(-(pCopy.rotSpeed)) - pCopy.dirY * sin(-(pCopy.rotSpeed));
-		pCopy.dirY = oldDirX * sin(-(pCopy.rotSpeed)) + pCopy.dirY * cos(-(pCopy.rotSpeed));
+		pCopy.dirX = pCopy.dirX * cos(-(rotSpeed)) - pCopy.dirY * sin(-(rotSpeed));
+		pCopy.dirY = oldDirX * sin(-(rotSpeed)) + pCopy.dirY * cos(-(rotSpeed));
 		oldPlaneX = pCopy.planeX;
-		pCopy.planeX = pCopy.planeX * cos(-(pCopy.rotSpeed)) - pCopy.planeY * sin(-(pCopy.rotSpeed));
-		pCopy.planeY = oldPlaneX * sin(-(pCopy.rotSpeed)) + pCopy.planeY * cos(-(pCopy.rotSpeed));
+		pCopy.planeX = pCopy.planeX * cos(-(rotSpeed)) - pCopy.planeY * sin(-(rotSpeed));
+		pCopy.planeY = oldPlaneX * sin(-(rotSpeed)) + pCopy.planeY * cos(-(rotSpeed));
 	}
 	if (pCopy.wsad[3])//turn right
 	{
+		double oldDirX;
+		double oldPlaneX;
 		//both camera direction and camera plane must be rotated
 		oldDirX = pCopy.dirX;
-		pCopy.dirX = pCopy.dirX * cos(pCopy.rotSpeed) - pCopy.dirY * sin(pCopy.rotSpeed);
-		pCopy.dirY = oldDirX * sin(pCopy.rotSpeed) + pCopy.dirY * cos(pCopy.rotSpeed);
+		pCopy.dirX = pCopy.dirX * cos(rotSpeed) - pCopy.dirY * sin(rotSpeed);
+		pCopy.dirY = oldDirX * sin(rotSpeed) + pCopy.dirY * cos(rotSpeed);
 		oldPlaneX = pCopy.planeX;
-		pCopy.planeX = pCopy.planeX * cos(-(pCopy.rotSpeed)) - pCopy.planeY * sin(pCopy.rotSpeed);
-		pCopy.planeY = oldPlaneX * sin(pCopy.rotSpeed) + pCopy.planeY * cos(pCopy.rotSpeed);
+		pCopy.planeX = pCopy.planeX * cos(-(rotSpeed)) - pCopy.planeY * sin(rotSpeed);
+		pCopy.planeY = oldPlaneX * sin(rotSpeed) + pCopy.planeY * cos(rotSpeed);
 	}
 	if (pCopy.wsad[8])//strafe left
 	{
+#if NCLIP
+		pCopy.posX += -pCopy.dirY * moveSpeed;
+		pCopy.posY +=  pCopy.dirX * moveSpeed;
+#else
 		//use crazy magic to rotate vector 90 degrees
 		//NOTE: THIS IS MY 3rd TIME IMPLEMENTING THIS? WHY DOES IT GO AWAY? DO I FORGET TO COMMIT? WHAT?
 		double nDirX = -pCopy.dirY;
 		double nDirY = pCopy.dirX;
-		if (worldMap[int(pCopy.posX + nDirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * pCopy.moveSpeed;
-		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * pCopy.moveSpeed)] == false) pCopy.posY += nDirY * pCopy.moveSpeed;
+		if (worldMap[int(pCopy.posX + nDirX * moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * moveSpeed;
+		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * moveSpeed)] == false) pCopy.posY += nDirY * moveSpeed;
+#endif
 	}
 	if (pCopy.wsad[9])//strafe right
 	{
+#if NCLIP
+		pCopy.posX +=  pCopy.dirY * moveSpeed;
+		pCopy.posY += -pCopy.dirX * moveSpeed;
+#else
 		//use crazy magic to rotate vector -90 degrees
 		double nDirX = pCopy.dirY;
 		double nDirY = -pCopy.dirX;
-		if (worldMap[int(pCopy.posX + nDirX * pCopy.moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * pCopy.moveSpeed;
-		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * pCopy.moveSpeed)] == false) pCopy.posY += nDirY * pCopy.moveSpeed;
+		if (worldMap[int(pCopy.posX + nDirX * moveSpeed)][int(pCopy.posY)] == false) pCopy.posX += nDirX * moveSpeed;
+		if (worldMap[int(pCopy.posX)][int(pCopy.posY + nDirY * moveSpeed)] == false) pCopy.posY += nDirY * moveSpeed;
+#endif
 	}
 
 	playermut.lock();

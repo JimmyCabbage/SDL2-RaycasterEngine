@@ -5,8 +5,8 @@
 
 #include "player.h"
 
-constexpr uint16_t SCR_HEIGHT = 720 / 2;
-constexpr uint16_t SCR_WIDTH = 1280 / 2;
+constexpr uint16_t SCR_HEIGHT = 720;
+constexpr uint16_t SCR_WIDTH = 1280;
 
 class RaycastingWindow
 {

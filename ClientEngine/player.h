@@ -16,13 +16,12 @@ public:
 	bool jumping; //jumping?
 	bool falling; //falling?
 
-	double moveSpeed, rotSpeed; // used for the speed of the player
 	double jumpMSpeed;
 
 	Player(Player& p);
 	Player();
 
-	void Move(std::mutex& playermut, double frameTime);
+	void Move(std::mutex& playermut, double frameTime, double time);
 };
 
 #endif
