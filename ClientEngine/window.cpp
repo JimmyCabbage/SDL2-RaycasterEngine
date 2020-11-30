@@ -62,7 +62,7 @@ RaycastingWindow::RaycastingWindow()
 
 	player.posX = 22, player.posY = 12, player.posZ = 0; // setup player x, y, and z variables
 	player.dirX = -1, player.dirY = 0; // direction when start
-	player.planeX = 0, player.planeY = 0.88; // 2d version of camera plane
+	player.planeX = 0, player.planeY = 0.76; // 2d version of camera plane
 }
 
 void RaycastingWindow::handleEvents(bool& ndone)
@@ -300,6 +300,11 @@ void RaycastingWindow::drawRaycaster()
 			color.r = 127;
 			color.g = 0;
 			color.b = 153;
+			break;
+		case 8://amber
+			color.r = 255;
+			color.g = 126;
+			color.b = 0;
 			break;
 #endif
 		default://yellow

@@ -21,13 +21,13 @@ protected:
 	std::mutex playerMutex;
 
 	//drawing functions
-	virtual void drawRaycaster();
-	virtual void drawHUD();
+	void drawRaycaster();
+	void drawHUD();
 	//event handling functions
-	virtual void handleEvents(bool& ndone);
+	void handleEvents(bool& ndone);
 public:
 	RaycastingWindow();
-	virtual void mainLoop();
+	void mainLoop();
 	~RaycastingWindow();
 };
 
