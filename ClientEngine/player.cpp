@@ -6,7 +6,7 @@
 /*
  * 0 for collision checking
  * 1 for no collision with level geometry
- * NOTE: VERY DANGEROUS. Undefined behavior if set to 1. Use at your own risk.
+ * NOTE: VERY DANGEROUS. Undefined behavior if set to 1 (ISO C++ Standard). Use at your own risk.
  * I take no responsibilities if this... let's say bricks your computer.
  * YOU HAVE BEEN WARNED
  */
@@ -33,6 +33,7 @@ Player::Player(Player& p)
 	jumping = p.jumping;
 	falling = p.falling;
 
+	//WHAT IS THIS?
 	jumpMSpeed = p.jumpMSpeed;
 }
 
