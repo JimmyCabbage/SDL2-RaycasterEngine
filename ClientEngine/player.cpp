@@ -1,6 +1,7 @@
 #include "player.h"
 #include "map.h"
-#include <iostream>
+
+#include <algorithm>
 
 /*
  * 0 for collision checking
@@ -61,6 +62,13 @@ Player::Player()
 
 void Player::Move(std::mutex& playermut, double frameTime, double time)
 {
+	/*
+	 * TODO:	Make this single-threaded or improve multithreading,
+	 *			because this way of copying the variable directly
+	 *			can lead to a condition where this thread is made,
+	 *			event loop is called and updates the player class to handle inputs,
+	 *			but this function ends and the inputs are overwritten with the old ones
+	 */
 	playermut.lock();
 	Player pCopy(*this);
 	playermut.unlock();
@@ -102,16 +110,16 @@ void Player::Move(std::mutex& playermut, double frameTime, double time)
 		pCopy.jumping = false;
 	}
 
-	/*
 	if (pCopy.wsad[6])//look up
 	{
-		pCopy.pitch += 5.0;
+		pCopy.pitch += 2.0;
+		pCopy.pitch = std::clamp(pCopy.pitch, -125.0, 125.0);
 	}
 	if (pCopy.wsad[7])//look down
 	{
-		pCopy.pitch -= 5.0;
+		pCopy.pitch -= 2.0;
+		pCopy.pitch = std::clamp(pCopy.pitch, -125.0, 125.0);
 	}
-	*/
 
 	if (pCopy.wsad[0])//move forward
 	{
@@ -135,25 +143,21 @@ void Player::Move(std::mutex& playermut, double frameTime, double time)
 	}
 	if (pCopy.wsad[2])//turn left
 	{
-		double oldDirX;
-		double oldPlaneX;
 		//both camera direction and camera plane must be rotated
-		oldDirX = pCopy.dirX;
+		double oldDirX = pCopy.dirX;
 		pCopy.dirX = pCopy.dirX * cos(-(rotSpeed)) - pCopy.dirY * sin(-(rotSpeed));
 		pCopy.dirY = oldDirX * sin(-(rotSpeed)) + pCopy.dirY * cos(-(rotSpeed));
-		oldPlaneX = pCopy.planeX;
+		double oldPlaneX = pCopy.planeX;
 		pCopy.planeX = pCopy.planeX * cos(-(rotSpeed)) - pCopy.planeY * sin(-(rotSpeed));
 		pCopy.planeY = oldPlaneX * sin(-(rotSpeed)) + pCopy.planeY * cos(-(rotSpeed));
 	}
 	if (pCopy.wsad[3])//turn right
 	{
-		double oldDirX;
-		double oldPlaneX;
 		//both camera direction and camera plane must be rotated
-		oldDirX = pCopy.dirX;
+		double oldDirX = pCopy.dirX;
 		pCopy.dirX = pCopy.dirX * cos(rotSpeed) - pCopy.dirY * sin(rotSpeed);
 		pCopy.dirY = oldDirX * sin(rotSpeed) + pCopy.dirY * cos(rotSpeed);
-		oldPlaneX = pCopy.planeX;
+		double oldPlaneX = pCopy.planeX;
 		pCopy.planeX = pCopy.planeX * cos(-(rotSpeed)) - pCopy.planeY * sin(rotSpeed);
 		pCopy.planeY = oldPlaneX * sin(rotSpeed) + pCopy.planeY * cos(rotSpeed);
 	}

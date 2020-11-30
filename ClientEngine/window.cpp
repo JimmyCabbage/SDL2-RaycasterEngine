@@ -10,15 +10,15 @@
  * 0 limits the colors
  * 1 adds more colors
  * NOTE: Should (probably) always have this enabled soon, instead of a switch. But computing colors may take more time
-*/
-#define EXTRACOLOR 0
+ */
+#define EXTRACOLOR 1
 
 /*
  * 0 makes the renderer add shading to walls
  * 1 makes everything fully lit
  * NOTE:
  *
-*/
+ */
 #define FULLBRIGHT 0
 
 struct ColorRGB
@@ -159,6 +159,8 @@ void RaycastingWindow::mainLoop()
 	uint32_t oldTime = 0; // time of the previous frame
 	double frameTime;
 
+	//void (Player:: * movement)(std::mutex&, double, double) = &Player::Move;
+
 	bool ndone = true;
 	while (ndone)
 	{
@@ -169,16 +171,16 @@ void RaycastingWindow::mainLoop()
 
 		std::thread playerMovementThread = std::thread(&Player::Move, &player, std::ref(playerMutex), frameTime, (time / 1000.0));
 
-		//drawHUD();
-
 		drawRaycaster();
+
+		drawHUD();
 
 		SDL_RenderPresent(gRenderer);
 		//we don't need this because the raycaster is already supposed to fill the whole screen
-		/*
+#if 0
 		SDL_SetRenderDrawColor(gRenderer, 0, 0, 0, 255);
 		SDL_RenderClear(gRenderer);
-		*/
+#endif
 
 		handleEvents(ndone);
 		
@@ -353,9 +355,9 @@ void RaycastingWindow::drawRaycaster()
 void RaycastingWindow::drawHUD()
 {
 	//draw hud background
-	SDL_SetRenderDrawColor(gRenderer, 220, 220, 220, 255);
-	const int topleftx = SCR_HEIGHT / 8;
-	const SDL_Rect hudBox = { 0, SCR_HEIGHT - topleftx, SCR_WIDTH, topleftx };
+	SDL_SetRenderDrawColor(gRenderer, 220, 220, 220, 200);
+	constexpr int topleftx = SCR_HEIGHT / 8;
+	constexpr SDL_Rect hudBox = { 0, SCR_HEIGHT - topleftx, SCR_WIDTH, topleftx };
 	SDL_RenderDrawRect(gRenderer, &hudBox);
 	SDL_RenderFillRect(gRenderer, &hudBox);
 }

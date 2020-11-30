@@ -26,9 +26,11 @@ protected:
 	//event handling functions
 	void handleEvents(bool& ndone);
 public:
-	RaycastingWindow();
+	explicit RaycastingWindow();
 	void mainLoop();
 	~RaycastingWindow();
+
+	RaycastingWindow(RaycastingWindow&) = delete;
 };
 
 #endif

@@ -18,8 +18,8 @@ public:
 
 	double jumpMSpeed;
 
-	Player(Player& p);
-	Player();
+	explicit Player(Player& p);
+	explicit Player();
 
 	void Move(std::mutex& playermut, double frameTime, double time);
 };
