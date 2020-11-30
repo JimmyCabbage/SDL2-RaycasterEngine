@@ -12,7 +12,7 @@
  * 2 limits the colors a lot
  * NOTE: Should (probably) always have this enabled to 1 soon, instead of a switch. But computing colors may take more time
  */
-#define EXTRACOLOR 2
+#define EXTRACOLOR 0
 
 /*
  * 0 makes the renderer add shading to walls
