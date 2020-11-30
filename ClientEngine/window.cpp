@@ -323,7 +323,7 @@ void RaycastingWindow::drawRaycaster()
 			break;
 		}
 
-#if (!(FULLBRIGHT) && EXTRACOLOR == 1)
+#if (!(FULLBRIGHT) && (EXTRACOLOR == 1 || EXTRACOLOR == 0))
 		//give x and y sides different brightness
 		if (side == 1)
 		{
