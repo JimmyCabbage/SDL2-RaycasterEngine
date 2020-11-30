@@ -2,6 +2,7 @@
 #define WINDOW_H
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "player.h"
 
@@ -15,6 +16,9 @@ protected:
 	SDL_Window* gWindow;
 	SDL_Renderer* gRenderer;
 
+	//SDL2 TTF things
+	TTF_Font* Sans;
+
 	//player of the game
 	Player player;
 	//player's mutex
@@ -23,6 +27,7 @@ protected:
 	//drawing functions
 	void drawRaycaster();
 	void drawHUD();
+	void drawPlayerPosition();
 	//event handling functions
 	void handleEvents(bool& ndone);
 public:

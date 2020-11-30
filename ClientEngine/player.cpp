@@ -114,12 +114,12 @@ void Player::Move(std::mutex& playermut, double frameTime, double time)
 	if (pCopy.wsad[6])//look up
 	{
 		pCopy.pitch += 2.0;
-		pCopy.pitch = std::clamp(pCopy.pitch, -125.0, 125.0);
+		pCopy.pitch = std::clamp(pCopy.pitch, -155.0, 155.0);
 	}
 	if (pCopy.wsad[7])//look down
 	{
 		pCopy.pitch -= 2.0;
-		pCopy.pitch = std::clamp(pCopy.pitch, -125.0, 125.0);
+		pCopy.pitch = std::clamp(pCopy.pitch, -155.0, 155.0);
 	}
 
 	if (pCopy.wsad[0])//move forward
